@@ -28,13 +28,25 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "you wrote: "+update.Message.Text)
-			// msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
+		switch update.Message.Command() {
+		case "help":
+			helpMessage(bot, update.Message)
+		default:
+			defaultBehavior(bot, update.Message)
 		}
 	}
+}
+
+func helpMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "/help - help")
+
+	bot.Send(msg)
+}
+
+func defaultBehavior(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
+
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "you wrote: "+inputMessage.Text)
+
+	bot.Send(msg)
 }
